@@ -222,8 +222,10 @@ def readColmapSceneInfo(path, images, depths, eval, train_test_exp, llffhold=8):
         # storePly(ply_path, xyz, rgb)
     try:
         pcd = fetchPly(ply_path)
+        print("fetchPly!")
     except:
         pcd = None
+        print("pcd is None!")
 
     scene_info = SceneInfo(point_cloud=pcd,
                            train_cameras=train_cam_infos,
