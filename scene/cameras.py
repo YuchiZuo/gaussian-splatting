@@ -32,7 +32,6 @@ class Camera(nn.Module):
         self.FoVy = FoVy
         self.cx = cx
         self.cy = cy
-        self.mask = mask
         self.image_name = image_name
 
         try:
@@ -44,6 +43,7 @@ class Camera(nn.Module):
 
         resized_image_rgb = PILtoTorch(image, resolution)
         gt_image = resized_image_rgb[:3, ...]
+
         self.alpha_mask = None
         if resized_image_rgb.shape[0] == 4:
             self.alpha_mask = resized_image_rgb[3:4, ...].to(self.data_device)
@@ -55,11 +55,12 @@ class Camera(nn.Module):
                 self.alpha_mask[..., :self.alpha_mask.shape[-1] // 2] = 0
             else:
                 self.alpha_mask[..., self.alpha_mask.shape[-1] // 2:] = 0
-
+        self.mask = mask
+        
         self.original_image = gt_image.clamp(0.0, 1.0).to(self.data_device)
         self.image_width = self.original_image.shape[2]
         self.image_height = self.original_image.shape[1]
-        print("self.original_image:",self.original_image)
+        print("self.original_image.shape:",self.original_image.shape)
         self.invdepthmap = None
         self.depth_reliable = False
         if invdepthmap is not None:
