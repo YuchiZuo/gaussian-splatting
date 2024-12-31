@@ -29,6 +29,8 @@ class CameraInfo(NamedTuple):
     T: np.array
     FovY: np.array
     FovX: np.array
+    cx: np.array
+    cy: np.array
     depth_params: dict
     image_path: str
     image_name: str
@@ -87,16 +89,21 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, depths_params, images_fold
 
         if intr.model=="SIMPLE_PINHOLE":
             focal_length_x = intr.params[0]
+            cx = intr.params[1]
+            cy = intr.params[2]
             FovY = focal2fov(focal_length_x, height)
             FovX = focal2fov(focal_length_x, width)
         elif intr.model=="PINHOLE":
+            cx = intr.params[2]
+            cy = intr.params[3]
             focal_length_x = intr.params[0]
             focal_length_y = intr.params[1]
             FovY = focal2fov(focal_length_y, height)
             FovX = focal2fov(focal_length_x, width)
         else:
             assert False, "Colmap camera model not handled: only undistorted datasets (PINHOLE or SIMPLE_PINHOLE cameras) supported!"
-
+        cx = (cx - width / 2) / width * 2
+        cy = (cy - height / 2) / height * 2
         n_remove = len(extr.name.split('.')[-1]) + 1
         depth_params = None
         if depths_params is not None:
@@ -109,7 +116,7 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, depths_params, images_fold
         image_name = extr.name
         depth_path = os.path.join(depths_folder, f"{extr.name[:-n_remove]}.png") if depths_folder != "" else ""
 
-        cam_info = CameraInfo(uid=uid, R=R, T=T, FovY=FovY, FovX=FovX, depth_params=depth_params,
+        cam_info = CameraInfo(uid=uid, R=R, T=T, FovY=FovY, FovX=FovX, cx=cx, cy=cy,depth_params=depth_params,
                               image_path=image_path, image_name=image_name, depth_path=depth_path,
                               width=width, height=height, is_test=image_name in test_cam_names_list)
         cam_infos.append(cam_info)
