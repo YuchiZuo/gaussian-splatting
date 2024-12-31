@@ -122,7 +122,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         if len(image.shape) == 3:
             mask_tensor = mask_tensor.unsqueeze(0)
             mask_tensor = mask_tensor.expand(image.shape[0], -1, -1)  
-        image = image * mask_tensor
+        # image = image * mask_tensor
         gt_image = gt_image * mask_tensor                
         Ll1 = l1_loss(image, gt_image)
         if FUSED_SSIM_AVAILABLE:
@@ -238,7 +238,7 @@ def training_report(tb_writer, iteration, Ll1, loss, l1_loss, elapsed, testing_i
                     image = torch.clamp(renderFunc(viewpoint, scene.gaussians, *renderArgs)["render"], 0.0, 1.0)
                     gt_image = torch.clamp(viewpoint.original_image.to("cuda"), 0.0, 1.0)
                     mask = torch.tensor(viewpoint.mask).to("cuda").float() 
-                    image = image * mask
+                    # image = image * mask
                     gt_image = gt_image * mask
                     if train_test_exp:
                         image = image[..., image.shape[-1] // 2:]
