@@ -117,8 +117,9 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, depths_params, images_fold
         image_name = extr.name
         depth_path = os.path.join(depths_folder, f"{extr.name[:-n_remove]}.png") if depths_folder != "" else ""
 
-        mask_path_png = os.path.join(os.dirname(images_folder), "masks", os.basename(
+        mask_path_png = os.path.join(os.path.dirname(images_folder), "masks", os.path.basename(
             image_path).replace(os.splitext(os.basename(image_path))[-1], '.png'))
+        
         print("mask_path_png:",mask_path_png)
         # if os.exists(mask_path_png) and hasattr(extra_opts, "use_mask") and extra_opts.use_mask:
         #     mask = cv2.imread(mask_path_png, cv2.IMREAD_GRAYSCALE).astype(np.uint8)
