@@ -34,6 +34,7 @@ class CameraInfo(NamedTuple):
     depth_params: dict
     image_path: str
     image_name: str
+    mask_path: str
     depth_path: str
     width: int
     height: int
@@ -116,8 +117,17 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, depths_params, images_fold
         image_name = extr.name
         depth_path = os.path.join(depths_folder, f"{extr.name[:-n_remove]}.png") if depths_folder != "" else ""
 
+        mask_path_png = os.path.join(os.dirname(images_folder), "masks", os.basename(
+            image_path).replace(os.splitext(os.basename(image_path))[-1], '.png'))
+        print("mask_path_png:",mask_path_png)
+        # if os.exists(mask_path_png) and hasattr(extra_opts, "use_mask") and extra_opts.use_mask:
+        #     mask = cv2.imread(mask_path_png, cv2.IMREAD_GRAYSCALE).astype(np.uint8)
+        #     mask = mask.astype(np.float32) / 255.0
+        # else:
+        #     mask = None      
+  
         cam_info = CameraInfo(uid=uid, R=R, T=T, FovY=FovY, FovX=FovX, cx=cx, cy=cy,depth_params=depth_params,
-                              image_path=image_path, image_name=image_name, depth_path=depth_path,
+                              image_path=image_path, image_name=image_name, mask_path = mask_path_png ,depth_path=depth_path,
                               width=width, height=height, is_test=image_name in test_cam_names_list)
         cam_infos.append(cam_info)
 
@@ -224,10 +234,8 @@ def readColmapSceneInfo(path, images, depths, eval, train_test_exp, llffhold=8):
         # storePly(ply_path, xyz, rgb)
     try:
         pcd = fetchPly(ply_path)
-        print("fetchPly!")
     except:
         pcd = None
-        print("pcd is None!")
 
     scene_info = SceneInfo(point_cloud=pcd,
                            train_cameras=train_cam_infos,

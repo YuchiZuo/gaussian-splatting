@@ -38,7 +38,14 @@ def loadCam(args, id, cam_info, resolution_scale, is_nerf_synthetic, is_test_dat
             raise
     else:
         invdepthmap = None
-        
+
+    if cam_info.mask_path != "":
+        mask = cv2.imread(cam_info.mask_path, cv2.IMREAD_GRAYSCALE)
+        mask = (mask > 0).astype(np.bool_)
+        print(mask.shape)
+    else:
+        mask = None     
+   
     orig_w, orig_h = image.size
     if args.resolution in [1, 2, 4, 8]:
         resolution = round(orig_w/(resolution_scale * args.resolution)), round(orig_h/(resolution_scale * args.resolution))
@@ -63,7 +70,7 @@ def loadCam(args, id, cam_info, resolution_scale, is_nerf_synthetic, is_test_dat
     return Camera(resolution, colmap_id=cam_info.uid, R=cam_info.R, T=cam_info.T, 
                   FoVx=cam_info.FovX, FoVy=cam_info.FovY, depth_params=cam_info.depth_params,
                   cx=cam_info.cx, cy=cam_info.cy,
-                  image=image, invdepthmap=invdepthmap,
+                  image=image, invdepthmap=invdepthmap,mask=mask,
                   image_name=cam_info.image_name, uid=id, data_device=args.data_device,
                   train_test_exp=args.train_test_exp, is_test_dataset=is_test_dataset, is_test_view=cam_info.is_test)
 
