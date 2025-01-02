@@ -116,7 +116,6 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             image *= alpha_mask
 
         # Loss
-
         gt_image = viewpoint_cam.original_image.cuda()
         mask_tensor = torch.from_numpy(viewpoint_cam.mask).float().cuda()
         if len(image.shape) == 3:
@@ -124,14 +123,13 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             mask_tensor = mask_tensor.expand(image.shape[0], -1, -1)  
         # image = image * mask_tensor
         gt_image = gt_image * mask_tensor                
-        Ll1 = l1_loss(image, gt_image)
+        Ll1 = l1_loss(image, gt_image,mask_tensor)
         if FUSED_SSIM_AVAILABLE:
             ssim_value = fused_ssim(image.unsqueeze(0), gt_image.unsqueeze(0))
         else:
             ssim_value = ssim(image, gt_image)
 
-        # loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim_value)
-        loss = ssim_value
+        loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim_value)
 
         # Depth regularization
         Ll1depth_pure = 0.0
@@ -239,8 +237,6 @@ def training_report(tb_writer, iteration, Ll1, loss, l1_loss, elapsed, testing_i
                     image = torch.clamp(renderFunc(viewpoint, scene.gaussians, *renderArgs)["render"], 0.0, 1.0)
                     gt_image = torch.clamp(viewpoint.original_image.to("cuda"), 0.0, 1.0)
                     mask = torch.tensor(viewpoint.mask).to("cuda").float() 
-                    # image = image * mask
-                    gt_image = gt_image * mask
                     if train_test_exp:
                         image = image[..., image.shape[-1] // 2:]
                         gt_image = gt_image[..., gt_image.shape[-1] // 2:]
@@ -249,7 +245,7 @@ def training_report(tb_writer, iteration, Ll1, loss, l1_loss, elapsed, testing_i
                         if iteration == testing_iterations[0]:
                             tb_writer.add_images(config['name'] + "_view_{}/ground_truth".format(viewpoint.image_name), gt_image[None], global_step=iteration)
                     l1_test += l1_loss(image, gt_image).mean().double()
-                    psnr_test += psnr(image, gt_image).mean().double()
+                    psnr_test += psnr(image, gt_image,mask).mean().double()
                 psnr_test /= len(config['cameras'])
                 l1_test /= len(config['cameras'])          
                 print("\n[ITER {}] Evaluating {}: L1 {} PSNR {}".format(iteration, config['name'], l1_test, psnr_test))
