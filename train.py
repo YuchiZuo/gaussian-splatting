@@ -124,13 +124,14 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             mask_tensor = mask_tensor.expand(image.shape[0], -1, -1)  
         # image = image * mask_tensor
         gt_image = gt_image * mask_tensor                
-        Ll1 = l1_loss(image, gt_image)
+        Ll1 = 50*l1_loss(image, gt_image)
         if FUSED_SSIM_AVAILABLE:
             ssim_value = fused_ssim(image.unsqueeze(0), gt_image.unsqueeze(0))
         else:
             ssim_value = ssim(image, gt_image)
 
-        loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim_value)
+        # loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim_value)
+        loss = Ll1
 
         # Depth regularization
         Ll1depth_pure = 0.0

@@ -1,0 +1,1 @@
+python train.py -s ./data/R63_two_view/ --resolution 1 --iterations 10000 --test_iterations 100 1000 5000
